@@ -6,7 +6,7 @@ import argparse
 import json, torch, os
 import numpy as np
 from diffuseq.utils import dist_util, logger
-from diffuseq.text_datasets import load_data_text
+from diffuseq.text_datasets_cot import load_data_text
 from diffuseq.step_sample import create_named_schedule_sampler
 from basic_utils import (
     load_defaults_config,
