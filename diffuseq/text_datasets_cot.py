@@ -8,6 +8,7 @@ import torch
 import json
 import psutil
 import datasets
+import math
 from datasets import Dataset as Dataset2
 
 def load_data_text(
@@ -220,14 +221,23 @@ def helper_tokenize_pretrain(sentence_lst, vocab_dict, seq_len, mask_ratio=0.5):
 def preprocess_AQua(data_line):
     question = json.loads(data_line)['question'].strip()
     options = " ".join(json.loads(data_line)['options'])
-    rationales = json.loads(data_line)['rationale'].strip()
+    rationales = json.loads(data_line)['rationale'].strip().split("\n")
     correct = json.loads(data_line)['correct'].strip()
 
     
     cot_sequences = []
 
-    question = question + ' ' + options
-    rationales = [""] + rationales.split('\n') + [correct]
+    question = question + " " + options + " "
+
+    if len(rationales) == 4:
+        rationales = ["\n".join(rationales[0:2]), rationales[2], rationales[3]]
+
+    elif len(rationales) > 4:
+        step = math.ceil(len(rationales)/3)
+        rationales = ["\n".join(rationales[0:step]), "\n".join(rationales[step:2*step]), "\n".join(rationales[2*step:])]
+
+
+    rationales = [""] + rationales + [correct]
 
     for i in range(len(rationales)-1):
         cot_sequences.append(tuple([question+"".join(rationales[0:i+1]), rationales[i+1]]))
@@ -235,7 +245,7 @@ def preprocess_AQua(data_line):
     return cot_sequences
 
 
-
+MAX_DATA_ROW = 200000
 def get_corpus(data_args, seq_len, split='train', loaded_vocab=None):
 
     print('#'*30, '\nLoading dataset {} from {}...'.format(data_args.dataset, data_args.data_dir))
@@ -257,9 +267,12 @@ def get_corpus(data_args, seq_len, split='train', loaded_vocab=None):
     with open(path, 'r') as f_reader:
         for row in f_reader:
             cot_sentences = preprocess_AQua(row)
-            for cot_sentence in cot_sentences:
-                sentence_lst['src'].append(cot_sentence[0])
-                sentence_lst['trg'].append(cot_sentence[1])
+            if len(sentence_lst) < MAX_DATA_ROW:
+                for cot_sentence in cot_sentences:
+                    sentence_lst['src'].append(cot_sentence[0])
+                    sentence_lst['trg'].append(cot_sentence[1])
+            else:
+                break
 
             # sentence_lst['src'].append(json.loads(row)['src'].strip())
             # sentence_lst['trg'].append(json.loads(row)['trg'].strip())
