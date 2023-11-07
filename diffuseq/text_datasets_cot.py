@@ -267,7 +267,7 @@ def get_corpus(data_args, seq_len, split='train', loaded_vocab=None):
     with open(path, 'r') as f_reader:
         for row in f_reader:
             cot_sentences = preprocess_AQua(row)
-            if len(sentence_lst) < MAX_DATA_ROW:
+            if len(sentence_lst['src']) < MAX_DATA_ROW:
                 for cot_sentence in cot_sentences:
                     sentence_lst['src'].append(cot_sentence[0])
                     sentence_lst['trg'].append(cot_sentence[1])
