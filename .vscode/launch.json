@@ -109,6 +109,78 @@
             "--reg_rate",
             "0.0"
             ]
+        },
+
+        {
+            "name": "Python: run_decode_solver",
+            "type": "python",
+            "request": "launch",
+            "program": "scripts/run_decode_solver.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+            "--model_dir",
+            "diffusion_models/diffuseq_AQuA_h128_lr0.0001_t2000_sqrt_lossaware_seed102_AQuA20231029-14:58:15",
+            "--seed",
+            "110",
+            "--bsz",
+            "100",
+            "--step",
+            "10",
+            "--split",
+            "debug"
+            
+            ]
+
+        },
+
+        {
+            "name": "Python: eval_seq2seq",
+            "type": "python",
+            "request": "launch",
+            "program": "scripts/eval_seq2seq.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+            "--folder",
+            "generation_outputs/diffuseq_AQuA_h128_lr0.0001_t2000_sqrt_lossaware_seed102_AQuA20231029-14:58:15/ema_0.9999_040000.pt.samples",
+            "--mbr"
+            ]
+
+        },
+
+        {
+            "name": "Python: sample_seq2seq_dpmSolver",
+            "type": "python",
+            "request": "launch",
+            "program": "sample_seq2seq_dpmSolver.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+            "--model_path",
+            "diffusion_models/diffuseq_AQuA_h128_lr0.0001_t2000_sqrt_lossaware_seed102_AQuA20231029-14:58:15/ema_0.9999_040000.pt",
+            "--step",
+            "10",
+            "--batch_size",
+            "100",
+            "--start_n",
+            "0",
+            "--seed2",
+            "110",
+            "--split",
+            "debug",
+            "--out_dir",
+            "generation_outputs",
+            "--top_p",
+            "1",
+            "--rejection_rate",
+            "0.0",
+            "--clamp_step",
+            "0",
+            "--note",
+            "none"
+            ]
+
         }
   ]
 }

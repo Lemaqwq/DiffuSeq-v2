@@ -227,20 +227,22 @@ def preprocess_AQua(data_line):
     
     cot_sequences = []
 
+    question = question.replace('\n', ' ')
+
     question = question + " " + options + " "
 
     if len(rationales) == 4:
-        rationales = ["\n".join(rationales[0:2]), rationales[2], rationales[3]]
+        rationales = [" ".join(rationales[0:2]), rationales[2], rationales[3]]
 
     elif len(rationales) > 4:
         step = math.ceil(len(rationales)/3)
-        rationales = ["\n".join(rationales[0:step]), "\n".join(rationales[step:2*step]), "\n".join(rationales[2*step:])]
+        rationales = [" ".join(rationales[0:step]), " ".join(rationales[step:2*step]), " ".join(rationales[2*step:])]
 
-
-    rationales = [""] + rationales + [correct]
+    rationales = [i.replace('\n', ' ') for i in rationales]
+    rationales = [""] + rationales + [" " + correct]
 
     for i in range(len(rationales)-1):
-        cot_sequences.append(tuple([question+"".join(rationales[0:i+1]), rationales[i+1]]))
+        cot_sequences.append(tuple([question+" ".join(rationales[0:i+1]), rationales[i+1]]))
     
     return cot_sequences
 
@@ -261,18 +263,29 @@ def get_corpus(data_args, seq_len, split='train', loaded_vocab=None):
     elif split == 'test':
         print('### Loading form the TEST set...')
         path = f'{data_args.data_dir}/test.jsonl'
+    elif split == 'debug':
+        print('### Loading form the DEBUG set...')
+        path = f'{data_args.data_dir}/debug.jsonl'
     else:
         assert False, "invalid split for dataset"
 
+
+    
     with open(path, 'r') as f_reader:
-        for row in f_reader:
-            cot_sentences = preprocess_AQua(row)
-            if len(sentence_lst['src']) < MAX_DATA_ROW:
-                for cot_sentence in cot_sentences:
-                    sentence_lst['src'].append(cot_sentence[0])
-                    sentence_lst['trg'].append(cot_sentence[1])
-            else:
-                break
+            for row in f_reader:
+                cot_sentences = preprocess_AQua(row)
+                if len(sentence_lst['src']) < MAX_DATA_ROW:
+                    for cot_sentence in cot_sentences:
+                        sentence_lst['src'].append(cot_sentence[0])
+                        sentence_lst['trg'].append(cot_sentence[1])
+                else:
+                    break
+    
+    monitor_path = './proprocess_test_data.jsonl'
+    monitor = open(monitor_path, 'a')
+    for src, trg in zip(sentence_lst['src'], sentence_lst['trg']):
+        print(json.dumps({"source": src, "target": trg}), file=monitor)
+    monitor.close()
 
             # sentence_lst['src'].append(json.loads(row)['src'].strip())
             # sentence_lst['trg'].append(json.loads(row)['trg'].strip())

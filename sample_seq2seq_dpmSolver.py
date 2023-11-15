@@ -12,7 +12,7 @@ import torch as th
 import torch.distributed as dist
 from transformers import set_seed
 from diffuseq.rounding import denoised_fn_round, get_weights
-from diffuseq.text_datasets import load_data_text
+from diffuseq.text_datasets_cot import load_data_text
 from torch.cuda.amp import autocast
 
 # from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
@@ -63,7 +63,8 @@ def main():
     )
 
     model.load_state_dict(
-        dist_util.load_state_dict(args.model_path, False, "amp", map_location="cpu")
+        # dist_util.load_state_dict(args.model_path, False, "amp", map_location="cpu")
+        dist_util.load_state_dict(args.model_path)
     )
 
     pytorch_total_params = sum(p.numel() for p in model.parameters())
