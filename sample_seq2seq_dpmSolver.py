@@ -42,6 +42,8 @@ def create_argparser():
 def main():
     args = create_argparser().parse_args()
 
+    
+
     dist_util.setup_dist()
     logger.configure()
 
@@ -82,6 +84,10 @@ def main():
     set_seed(args.seed2)
 
     print("### Sampling...on", args.split)
+
+    _Simon = False
+    if _Simon:
+        args.seq_len = 256
 
     ## load data
     data_valid = load_data_text(

@@ -114,6 +114,17 @@ def helper_tokenize(sentence_lst, vocab_dict, seq_len):
             end_token = group_lst['input_id_x'][i][-1]
             src = group_lst['input_id_x'][i][:-1]
             trg = group_lst['input_id_y'][i][:-1]
+
+            _Simon = False
+            if _Simon:
+                len_z = len(src) + len(trg)
+                stat_path = './stat_train_data.jsonl'
+                stat = open(stat_path, 'a')
+                print(json.dumps({"source": src, "target": trg, "len_z": len_z}), file=stat)
+                stat.close()
+
+
+
             while len(src) + len(trg) > seq_len - 3:
                 if len(src)>len(trg):
                     src.pop()
@@ -239,7 +250,7 @@ def preprocess_AQua(data_line):
         rationales = [" ".join(rationales[0:step]), " ".join(rationales[step:2*step]), " ".join(rationales[2*step:])]
 
     rationales = [i.replace('\n', ' ') for i in rationales]
-    rationales = [""] + rationales + [" " + correct]
+    rationales = [""] + rationales
 
     for i in range(len(rationales)-1):
         cot_sequences.append(tuple([question+" ".join(rationales[0:i+1]), rationales[i+1]]))
@@ -247,7 +258,7 @@ def preprocess_AQua(data_line):
     return cot_sequences
 
 
-MAX_DATA_ROW = 200000
+MAX_DATA_ROW = 2000000
 def get_corpus(data_args, seq_len, split='train', loaded_vocab=None):
 
     print('#'*30, '\nLoading dataset {} from {}...'.format(data_args.dataset, data_args.data_dir))

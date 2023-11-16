@@ -168,7 +168,7 @@
             "--seed2",
             "110",
             "--split",
-            "debug",
+            "train",
             "--out_dir",
             "generation_outputs",
             "--top_p",
