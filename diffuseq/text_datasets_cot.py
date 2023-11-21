@@ -229,7 +229,7 @@ def helper_tokenize_pretrain(sentence_lst, vocab_dict, seq_len, mask_ratio=0.5):
     print(f"RAM used: {psutil.Process().memory_info().rss / (1024 * 1024):.2f} MB")
     return raw_datasets
 
-def preprocess_AQua(data_line):
+def preprocess_AQuA(data_line):
     question = json.loads(data_line)['question'].strip()
     options = " ".join(json.loads(data_line)['options'])
     rationales = json.loads(data_line)['rationale'].strip().split("\n")
@@ -257,8 +257,27 @@ def preprocess_AQua(data_line):
     
     return cot_sequences
 
+def preprocess_4_by_4_mult(data_line):
+    question = json.loads(data_line)['src'].strip()
+    target = json.loads(data_line)['trg'].strip()
+    rationales = json.loads(data_line)['rationales'].strip().split("+")
 
-MAX_DATA_ROW = 2000000
+    rationales = rationales + [' = ' + target]
+    cot_sequences = [[question+ ' = ', rationales[0]], [question+ ' = ' + rationales[0], rationales[1]]]
+
+    for i in range(len(rationales)-2):
+        cot_sequences.append(tuple([' + '.join(cot_sequences[-1]), rationales[i+2]]))
+    
+    cot_sequences
+    return cot_sequences
+
+    
+
+    
+
+
+
+MAX_DATA_ROW = 2000000000
 def get_corpus(data_args, seq_len, split='train', loaded_vocab=None):
 
     print('#'*30, '\nLoading dataset {} from {}...'.format(data_args.dataset, data_args.data_dir))
@@ -284,7 +303,10 @@ def get_corpus(data_args, seq_len, split='train', loaded_vocab=None):
     
     with open(path, 'r') as f_reader:
             for row in f_reader:
-                cot_sentences = preprocess_AQua(row)
+                if data_args.dataset == 'AQuA':
+                    cot_sentences = preprocess_AQuA(row)
+                elif data_args.dataset == '4_by_4_mult':
+                    cot_sentences = preprocess_4_by_4_mult(row)
                 if len(sentence_lst['src']) < MAX_DATA_ROW:
                     for cot_sentence in cot_sentences:
                         sentence_lst['src'].append(cot_sentence[0])
