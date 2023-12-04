@@ -27,7 +27,7 @@ def summarize_len_z(jsonl_file):
     }
 
 # Usage example
-summary = summarize_len_z('stat_train_data.jsonl')
+summary = summarize_len_z('stat_train_data5_by_5_mult.jsonl')
 
 print('Max len_z:', summary['max_len_z'])
 print('Min len_z:', summary['min_len_z'])

@@ -1,5 +1,4 @@
 python -m torch.distributed.launch --nproc_per_node=4 --master_port=12231 --use_env run_train.py \
---resume_checkpoint diffusion_models/diffuseq_AQuA_h128_lr0.0001_t2000_sqrt_lossaware_seed102_AQuA_v220231115-11:49:46/ema_0.9999_060000.pt \
 --diff_steps 2000 \
 --lr 0.0001 \
 --learning_steps 60000 \
@@ -9,13 +8,13 @@ python -m torch.distributed.launch --nproc_per_node=4 --master_port=12231 --use_
 --hidden_dim 128 \
 --bsz 128 \
 --microbatch 128 \
---dataset AQuA \
---data_dir datasets/AQuA \
+--dataset 4or5_by_4or5_mult \
+--data_dir datasets/4or5_by_4or5_mult \
 --learned_mean_embed True \
 --denoise True \
 --vocab bert \
---seq_len 150 \
+--seq_len 128 \
 --use_fp16 \
 --denoise_rate 0.5 \
 --schedule_sampler lossaware \
---notes AQuA_v2
+--notes 4or5_by_4or5_mult

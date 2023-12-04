@@ -115,10 +115,10 @@ def helper_tokenize(sentence_lst, vocab_dict, seq_len):
             src = group_lst['input_id_x'][i][:-1]
             trg = group_lst['input_id_y'][i][:-1]
 
-            _Simon = False
+            _Simon = True
             if _Simon:
                 len_z = len(src) + len(trg)
-                stat_path = './stat_train_data.jsonl'
+                stat_path = './stat_train_data' + '5_by_5_mult' + '.jsonl'
                 stat = open(stat_path, 'a')
                 print(json.dumps({"source": src, "target": trg, "len_z": len_z}), file=stat)
                 stat.close()
@@ -257,7 +257,7 @@ def preprocess_AQuA(data_line):
     
     return cot_sequences
 
-def preprocess_4_by_4_mult(data_line):
+def preprocess_n_by_n_mult(data_line):
     question = json.loads(data_line)['src'].strip()
     target = json.loads(data_line)['trg'].strip()
     rationales = json.loads(data_line)['rationales'].strip().split("+")
@@ -268,16 +268,26 @@ def preprocess_4_by_4_mult(data_line):
     for i in range(len(rationales)-2):
         cot_sequences.append(tuple([' + '.join(cot_sequences[-1]), rationales[i+2]]))
     
-    cot_sequences
+    return cot_sequences
+
+def preprocess_gsm8k(data_line):
+    question = json.loads(data_line)['src'].strip()
+    target = json.loads(data_line)['trg'].strip()
+    rationales = json.loads(data_line)['rationales'].strip().split(" ")
+
+    cot_sequences = []
+    rationales = [""] + rationales
+
+    for i in range(len(rationales)-1):
+        cot_sequences.append(tuple([question + " " + " ".join(rationales[0:i+1]), rationales[i+1]]))
+    
     return cot_sequences
 
     
 
-    
 
 
-
-MAX_DATA_ROW = 2000000000
+MAX_DATA_ROW = 3000000
 def get_corpus(data_args, seq_len, split='train', loaded_vocab=None):
 
     print('#'*30, '\nLoading dataset {} from {}...'.format(data_args.dataset, data_args.data_dir))
@@ -305,23 +315,36 @@ def get_corpus(data_args, seq_len, split='train', loaded_vocab=None):
             for row in f_reader:
                 if data_args.dataset == 'AQuA':
                     cot_sentences = preprocess_AQuA(row)
-                elif data_args.dataset == '4_by_4_mult':
-                    cot_sentences = preprocess_4_by_4_mult(row)
+                elif data_args.dataset == '4_by_4_mult' or data_args.dataset == '5_by_5_mult':
+                    cot_sentences = preprocess_n_by_n_mult(row)
+                elif data_args.dataset == 'gsm8k':
+                    cot_sentences = preprocess_gsm8k(row)
+                elif data_args.dataset == '4or5_by_4or5_mult':
+                    question = json.loads(row)['source'].strip()
+                    target = json.loads(row)['target'].strip()
+                    cot_sentences = [question, target]
+
                 if len(sentence_lst['src']) < MAX_DATA_ROW:
-                    for cot_sentence in cot_sentences:
-                        sentence_lst['src'].append(cot_sentence[0])
-                        sentence_lst['trg'].append(cot_sentence[1])
+                    if data_args.dataset == '4or5_by_4or5_mult':
+                        sentence_lst['src'].append(cot_sentences[0])
+                        sentence_lst['trg'].append(cot_sentences[1])
+                    else:
+                        for cot_sentence in cot_sentences:
+                            sentence_lst['src'].append(cot_sentence[0])
+                            sentence_lst['trg'].append(cot_sentence[1])
                 else:
                     break
     
-    monitor_path = './proprocess_test_data.jsonl'
-    monitor = open(monitor_path, 'a')
-    for src, trg in zip(sentence_lst['src'], sentence_lst['trg']):
-        print(json.dumps({"source": src, "target": trg}), file=monitor)
-    monitor.close()
+    
 
             # sentence_lst['src'].append(json.loads(row)['src'].strip())
             # sentence_lst['trg'].append(json.loads(row)['trg'].strip())
+
+    monitor_path = f'./proprocess_test_data.jsonl'
+    monitor = open(monitor_path, 'w')
+    for src, trg in zip(sentence_lst['src'], sentence_lst['trg']):
+        print(json.dumps({"source": src, "target": trg}), file=monitor)
+    monitor.close()
 
     print('### Data samples...\n', sentence_lst['src'][:2], sentence_lst['trg'][:2])
         
@@ -329,6 +352,13 @@ def get_corpus(data_args, seq_len, split='train', loaded_vocab=None):
     vocab_dict = loaded_vocab
 
     train_dataset = helper_tokenize(sentence_lst, vocab_dict, seq_len)
+
+    monitor_path = './proprocess_test_data_tokenized.jsonl'
+    monitor = open(monitor_path, 'w')
+    for src, trg in zip(train_dataset['train']['input_id_x'], train_dataset['train']['input_id_y']):
+        print(json.dumps({"source": src, "target": trg}), file=monitor)
+    monitor.close()
+
     return train_dataset
 
 def get_corpus_pretrain(data_args, seq_len, split='train', loaded_vocab=None, split_num=0):
